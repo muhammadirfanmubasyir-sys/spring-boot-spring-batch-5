@@ -1,0 +1,8 @@
+HIPERSONIC DB: http://localhost:9090/h2-console/
+================================================
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=root
+spring.datasource.password=bismillah
