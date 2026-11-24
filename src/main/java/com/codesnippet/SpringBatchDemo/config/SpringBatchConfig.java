@@ -29,7 +29,22 @@ public class SpringBatchConfig {
 	@Autowired
 	private PersonRepository personRepository;
 
+	@Bean
+	public Job job(JobRepository jobRepository, Step step) {
+		return new JobBuilder("importPersons", jobRepository)
+				.start(step)
+				.build();
+	}
 
+	@Bean
+	public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		return new StepBuilder("csv-import-step", jobRepository)
+				.<Person, Person>chunk(10, transactionManager)
+				.reader(reader())
+				.processor(processor())
+				.writer(writer())
+				.build();
+	}
 
 	@Bean
 	public FlatFileItemReader<Person> reader() {
@@ -41,6 +56,20 @@ public class SpringBatchConfig {
 				.targetType(Person.class)
 				.build();
 	}
+
+	@Bean
+	PersonProcessor processor() {
+		return new PersonProcessor();
+	}
+
+	@Bean
+	RepositoryItemWriter<Person> writer() {
+		RepositoryItemWriter<Person> writer = new RepositoryItemWriter<>();
+		writer.setRepository(personRepository);
+		writer.setMethodName("save");
+		return writer;
+	}
+	
 	private LineMapper<Person> lineMapper() {
 		DefaultLineMapper<Person> lineMapper = new DefaultLineMapper<>();
 
@@ -58,35 +87,11 @@ public class SpringBatchConfig {
 		return lineMapper;
 	}
 
-	@Bean
-	PersonProcessor processor() {
-		return new PersonProcessor();
-	}
-
-	@Bean
-	RepositoryItemWriter<Person> writer() {
-		RepositoryItemWriter<Person> writer = new RepositoryItemWriter<>();
-		writer.setRepository(personRepository);
-		writer.setMethodName("save");
-		return writer;
-	}
 
 
-	@Bean
-	public Job job(JobRepository jobRepository, Step step) {
-		return new JobBuilder("importPersons", jobRepository)
-				.start(step)
-				.build();
-	}
 
-	@Bean
-	public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-		return new StepBuilder("csv-import-step", jobRepository)
-				.<Person, Person>chunk(10, transactionManager)
-				.reader(reader())
-				.processor(processor())
-				.writer(writer())
-				.build();
-	}
+
+
+
 
 }
